@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeHer AI | Smart Guardian</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <!-- Leaflet CSS for Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <!-- App Shell -->
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <!-- Brand removed as requested -->
+            <nav class="nav-menu">
+                <a href="#community" class="nav-item active" data-view="community">
+                    <i class="ri-group-line"></i> Community Safety
+                </a>
+                <a href="#density" class="nav-item" data-view="density">
+                    <i class="ri-map-pin-user-line"></i> Crowd Density
+                </a>
+                <a href="#guardian" class="nav-item" data-view="guardian">
+                    <i class="ri-radar-line"></i> Smart Guardian
+                </a>
+                <a href="#vault" class="nav-item" data-view="vault">
+                    <i class="ri-safe-2-line"></i> Evidence Vault
+                </a>
+            </nav>
+            <!-- User profile removed as requested -->
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <h1 id="view-title">Community Safety Network</h1>
+                <div class="header-actions">
+                    <button class="btn btn-outline" id="sos-btn">
+                        <i class="ri-alarm-warning-line"></i> SOS
+                    </button>
+                </div>
+            </header>
+
+            <!-- View Containers -->
+            <div class="view-container">
+
+                <!-- Community Reporting View -->
+                <section id="view-community" class="view active">
+                    <div class="grid-2">
+                        <!-- Report Form -->
+                        <div class="card glass">
+                            <h3><i class="ri-megaphone-line"></i> File a Report</h3>
+                            <form id="report-form" class="form-layout">
+                                <div class="input-group">
+                                    <label>Incident Type</label>
+                                    <select required>
+                                        <option value="">Select Category...</option>
+                                        <option value="harassment">Harassment</option>
+                                        <option value="road">Unsafe Road</option>
+                                        <option value="light">Broken Streetlight</option>
+                                        <option value="suspicious">Suspicious Activity</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label>Location</label>
+                                    <div class="location-input">
+                                        <input type="text" placeholder="Fetching current location..." required
+                                            id="report-location">
+                                        <button type="button" class="btn btn-icon"><i
+                                                class="ri-map-pin-line"></i></button>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Description</label>
+                                    <textarea rows="3" placeholder="Provide details..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Submit Report</button>
+                            </form>
+                        </div>
+
+                        <!-- Community Feed -->
+                        <div class="card glass">
+                            <h3><i class="ri-rss-line"></i> Recent Reports</h3>
+                            <div class="feed-list" id="community-feed">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Crowd Density View -->
+                <section id="view-density" class="view hidden">
+                    <div class="card glass map-card">
+                        <div class="map-header">
+                            <h3><i class="ri-earth-line"></i> Live Crowd &amp; Traffic Heatmap</h3>
+                            <div class="map-filters">
+                                <span class="badge badge-crowded">Crowded</span>
+                                <span class="badge badge-safe">Active/Safe</span>
+                                <span class="badge badge-quiet">Isolated</span>
+                            </div>
+                        </div>
+                        <div class="map-search-bar" style="display:flex; gap: 8px; margin-bottom: 16px;">
+                            <input type="text" id="density-location-input"
+                                placeholder="Enter destination (e.g., Shyam Bazar)..." style="flex:1;">
+                            <button class="btn btn-primary" id="density-search-btn"><i class="ri-navigation-line"></i>
+                                Get Route</button>
+                            <button class="btn btn-icon" id="density-gps-btn" title="Use My GPS Location"><i
+                                    class="ri-gps-line"></i></button>
+                        </div>
+                        <div id="density-map" class="map-container"></div>
+                        <div class="recommendation-panel mt-4">
+                            <h4>AI Recommendations</h4>
+                            <div class="reco-list" id="route-recommendations">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Smart Guardian View -->
+                <section id="view-guardian" class="view hidden">
+                    <div class="grid-2">
+                        <div class="card glass ai-status-card">
+                            <div class="ai-header">
+                                <div class="pulsing-indicator"></div>
+                                <h3>Guardian AI Active</h3>
+                            </div>
+                            <p class="text-muted">Monitoring your route and deviations in real-time.</p>
+
+                            <div class="status-metrics mt-4">
+                                <div class="metric">
+                                    <span class="label">Last Location</span>
+                                    <span class="value" id="guardian-location">Updating...</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="label">Deviation</span>
+                                    <span class="value" id="guardian-deviation">0%</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="label">Inactivity Time</span>
+                                    <span class="value" id="guardian-inactivity">0 min</span>
+                                </div>
+                            </div>
+
+                            <div class="guardian-actions mt-4">
+                                <button class="btn btn-secondary w-100" id="simulate-deviation-btn">Simulate Route
+                                    Deviation (Test AI)</button>
+                            </div>
+                        </div>
+
+                        <!-- AI Analysis Log -->
+                        <div class="card glass">
+                            <h3><i class="ri-brain-line"></i> AI Activity Log</h3>
+                            <div class="log-container" id="ai-log">
+                                <div class="log-entry">
+                                    <span class="time">Now</span>
+                                    <span class="msg">Guardian mode activated. Monitoring safe zones.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Are you okay modal (hidden) -->
+                    <div id="safety-check-modal" class="modal hidden">
+                        <div class="modal-content glass-heavy">
+                            <div class="warning-icon"><i class="ri-error-warning-fill"></i></div>
+                            <h2>Are you okay?</h2>
+                            <p>We noticed an unusual deviation from your route.</p>
+                            <div class="modal-actions">
+                                <button class="btn btn-primary" id="btn-im-safe">I'm Safe</button>
+                                <button class="btn btn-danger" id="btn-trigger-sos">Trigger SOS</button>
+                            </div>
+                            <div class="timeout-bar">
+                                <div class="progress" id="sos-progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Evidence Vault View -->
+                <section id="view-vault" class="view hidden">
+                    <div class="card glass">
+                        <div class="vault-header">
+                            <h3><i class="ri-lock-2-line"></i> Secure Evidence Vault</h3>
+                            <span class="badge badge-secure"><i class="ri-shield-check-line"></i> Encrypted</span>
+                        </div>
+                        <p class="text-muted">Automatically stores timeline, location, and recordings during SOS events.
+                        </p>
+
+                        <div class="timeline-container mt-4" id="vault-timeline">
+                            <!-- Populated by JS -->
+                            <div class="empty-state" style="text-align:center; padding:40px; color:var(--text-muted)">
+                                <i class="ri-folder-info-line"
+                                    style="font-size:32px; display:block; margin-bottom:12px"></i>
+                                <p>No emergency evidence recorded yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Generic Confirm Modal -->
+    <div id="generic-confirm-modal" class="modal hidden">
+        <div class="modal-content glass-heavy">
+            <div class="warning-icon" id="confirm-icon"><i class="ri-question-line"></i></div>
+            <h2 id="confirm-title">Are you sure?</h2>
+            <p id="confirm-message">Please confirm this action.</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="confirm-cancel-btn">Cancel</button>
+                <button class="btn btn-primary" id="confirm-ok-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOS Map Confirmation Dialog -->
+    <div id="sos-map-confirm-modal" class="modal hidden" style="z-index: 10000;">
+        <div class="modal-content glass-heavy" style="max-width: 90vw; width: 450px;">
+            <div style="text-align: center;">
+                <div style="width: 56px; height: 56px; background: rgba(255, 107, 74, 0.1); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+                    <i class="ri-map-pin-line" style="font-size: 28px; color: var(--primary);"></i>
+                </div>
+                <h2 style="margin: 0 0 12px 0; font-size: 1.4rem;">📍 View Captured SOS Location</h2>
+                <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0;">
+                    You are about to open the interactive map showing the exact GPS location where this SOS incident was captured.<br><br>
+                    This location can help family members, emergency responders, or administrators quickly identify where the emergency occurred.
+                </p>
+            </div>
+            <div class="modal-actions" style="margin-top: 28px;">
+                <button class="btn btn-secondary" id="cancel-sos-map-btn">Cancel</button>
+                <button class="btn btn-primary" id="confirm-sos-map-btn">🗺️ Show on Map</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOS Map Modal -->
+    <div id="sos-map-modal" class="modal hidden" style="z-index: 10000;">
+        <div class="modal-content glass-heavy" style="max-width: 90vw; width: 800px; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <div style="flex-grow: 1;">
+                    <h2 style="margin: 0 0 10px 0; color: #ff4757; font-size: 1.5rem;"><i class="ri-map-pin-line"></i> 📍 Emergency SOS Location</h2>
+                    <div id="sos-map-details" style="font-size: 0.95rem; line-height: 1.6; color: var(--text-primary); margin-bottom: 10px;">
+                        <!-- Injected by JS -->
+                    </div>
+                </div>
+                <button class="btn btn-icon" id="close-sos-map-btn" style="background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer; padding: 5px; flex-shrink: 0;"><i class="ri-close-line" style="font-size: 24px;"></i></button>
+            </div>
+            <div id="sos-map-container" style="height: 50vh; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.2);"></div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- App JS -->
+    <script src="js/app.js"></script>
+</body>
+
+</html>

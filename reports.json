@@ -1,0 +1,48 @@
+[
+  {
+    "type": "suspicious",
+    "typeName": "Suspicious Activity",
+    "loc": "Lake Gardens, Jodhpur Park, Kolkata, Kolkata Metropolitan Area, কলকাতা, West Bengal, 700045, India",
+    "desc": "Theft occured",
+    "latitude": 22.50290511239113,
+    "longitude": 88.36004239773355,
+    "id": "1784020320647",
+    "verifications": 0
+  },
+  {
+    "type": "harassment",
+    "typeName": "Harassment",
+    "loc": "Ganenda Mitra Lane, Shyam Bazar, Kolkata, Kolkata Metropolitan Area, Kolkata, West Bengal, 700004, India",
+    "desc": "Gulu gulu",
+    "latitude": 22.596045,
+    "longitude": 88.372299,
+    "id": "1784016958978",
+    "verifications": 1
+  },
+  {
+    "type": "road",
+    "typeName": "Unsafe Road",
+    "loc": "Ganenda Mitra Lane, Shyam Bazar, Kolkata, Kolkata Metropolitan Area, Kolkata, West Bengal, 700004, India",
+    "desc": "Road is broken...",
+    "latitude": 22.595939413733905,
+    "longitude": 88.37216371759656,
+    "id": "1784016670409",
+    "verifications": 1
+  },
+  {
+    "type": "light",
+    "typeName": "Broken Streetlight",
+    "loc": "Ganenda Mitra Lane, Shyam Bazar, Kolkata, Kolkata Metropolitan Area, Kolkata, West Bengal, 700004, India",
+    "desc": "The streetlight is broken.",
+    "id": "1783798741210",
+    "verifications": 0
+  },
+  {
+    "type": "light",
+    "typeName": "Broken Streetlight",
+    "loc": "Ganenda Mitra Lane, Shyam Bazar, Kolkata, Kolkata Metropolitan Area, Kolkata, West Bengal, 700004, India",
+    "desc": "The streetlight is fully broken.",
+    "id": "1783798632447",
+    "verifications": 1
+  }
+]

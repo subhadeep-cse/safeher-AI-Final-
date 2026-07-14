@@ -1,5 +1,25 @@
 [
   {
+    "type": "theft",
+    "typeName": "Theft",
+    "loc": "Selected Location\n\n📍 Near Skechers, 375, Prince Anwar Shah Road, South City Mall, Katju Nagar, Kolkata, Kolkata Metropolitan Area, কলকাতা, West Bengal, 700068, India\n\nLatitude: 22.50158\n\nLongitude: 88.36171",
+    "desc": "Selected Location\n\n📍 Near Skechers, 375, Prince Anwar Shah Road, South City Mall, Katju Nagar, Kolkata, Kolkata Metropolitan Area, কলকাতা, West Bengal, 700068, India\n\nLatitude: 22.50158\n\nLongitude: 88.36171",
+    "latitude": 22.5015843,
+    "longitude": 88.36171,
+    "id": "1784044383783",
+    "verifications": 1
+  },
+  {
+    "type": "harassment",
+    "typeName": "Harassment",
+    "loc": "Selected Location\n\n📍 Near Kolkata, Kolkata Metropolitan Area, Sonarpur, কলকাতা, West Bengal, 700100, India\n\nLatitude: 22.51717\n\nLongitude: 88.41883",
+    "desc": "Selected Location\n\n📍 Near Kolkata, Kolkata Metropolitan Area, Sonarpur, কলকাতা, West Bengal, 700100, India\n\nLatitude: 22.51717\n\nLongitude: 88.41883",
+    "latitude": 22.51717288772962,
+    "longitude": 88.41882980032625,
+    "id": "1784043858793",
+    "verifications": 1
+  },
+  {
     "type": "suspicious",
     "typeName": "Suspicious Activity",
     "loc": "Lake Gardens, Jodhpur Park, Kolkata, Kolkata Metropolitan Area, কলকাতা, West Bengal, 700045, India",

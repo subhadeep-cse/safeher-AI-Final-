@@ -71,18 +71,27 @@
                                     <select required>
                                         <option value="">Select Category...</option>
                                         <option value="harassment">Harassment</option>
+                                        <option value="theft">Theft</option>
                                         <option value="road">Unsafe Road</option>
-                                        <option value="light">Broken Streetlight</option>
-                                        <option value="suspicious">Suspicious Activity</option>
+                                        <option value="dark">Dark Road</option>
+                                        <option value="light">Street Light</option>
                                     </select>
                                 </div>
                                 <div class="input-group">
                                     <label>Location</label>
+                                    <div class="location-options" style="margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                        <label class="radio-label">
+                                            <input type="radio" name="report_loc" value="current" checked id="loc-opt-current">
+                                            <span>📍 Current Location (Auto Detected)</span>
+                                        </label>
+                                        <label class="radio-label">
+                                            <input type="radio" name="report_loc" value="map" id="loc-opt-map">
+                                            <span>📍 Report Another Location</span>
+                                        </label>
+                                    </div>
                                     <div class="location-input">
-                                        <input type="text" placeholder="Fetching current location..." required
-                                            id="report-location">
-                                        <button type="button" class="btn btn-icon"><i
-                                                class="ri-map-pin-line"></i></button>
+                                        <textarea placeholder="Fetching current location..." required id="report-location" readonly style="width: 100%; border: none; background: transparent; color: inherit; resize: none; overflow: hidden; padding-right: 30px; font-family: inherit; line-height: 1.5;"></textarea>
+                                        <button type="button" class="btn btn-icon" id="report-map-trigger" style="display: none;"><i class="ri-map-pin-line"></i></button>
                                     </div>
                                 </div>
                                 <div class="input-group">
@@ -268,6 +277,25 @@
             <div id="sos-map-container" style="height: 50vh; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.2);"></div>
         </div>
     </div>
+
+    <!-- Community Map Modal -->
+    <div id="community-map-modal" class="modal hidden" style="z-index: 10000;">
+        <div class="modal-content glass-heavy" style="max-width: 90vw; width: 800px; padding: 20px; display: flex; flex-direction: column; height: 80vh;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;"><i class="ri-map-pin-line"></i> Select Location</h2>
+                <button class="btn btn-icon" id="close-community-map-btn" style="background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer; padding: 5px;"><i class="ri-close-line" style="font-size: 24px;"></i></button>
+            </div>
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <input type="text" id="community-map-search" class="form-control" placeholder="Search for a place by name..." style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.5); color: white;">
+                <button class="btn btn-primary" id="community-map-search-btn"><i class="ri-search-line"></i> Search</button>
+            </div>
+            <div id="community-map-mount" style="flex: 1; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.2); position: relative; min-height: 300px;"></div>
+            <div style="margin-top: 15px; text-align: right;">
+                <button class="btn btn-primary" id="community-map-confirm-btn" disabled>Confirm Location</button>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"

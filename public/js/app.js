@@ -148,6 +148,24 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { console.error('Error fetching reports:', e); }
     }
 
+    function formatReportTime(idStr) {
+        const timestamp = parseInt(idStr, 10);
+        if (!timestamp || isNaN(timestamp)) return 'Just now';
+        
+        const date = new Date(timestamp);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        
+        let hours = date.getHours();
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        
+        return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
+    }
+
     function renderFeed(reports) {
         if (!reports || reports.length === 0) {
             communityFeed.innerHTML = `
@@ -162,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="feed-item">
                 <div class="feed-header">
                     <span class="badge badge-${escapeHtml(r.type)}">${escapeHtml(r.typeName)}</span>
-                    <span class="time text-muted" style="font-size: 0.8rem">${escapeHtml(r.time || 'Just now')}</span>
+                    <span class="time text-muted" style="font-size: 0.8rem">${escapeHtml(formatReportTime(r.id))}</span>
                 </div>
                 <div class="loc mt-2" style="font-size: 0.9rem"><i class="ri-map-pin-line"></i> ${escapeHtml(r.loc)}</div>
                 <p class="desc text-muted mt-2" style="font-size: 0.9rem">${escapeHtml(r.desc)}</p>
@@ -469,6 +487,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Draw route paths on Leaflet
             routes.forEach((route, idx) => {
+                route.source = currentAddress;
+                route.destination = destAddress;
+                
                 const latLngs = route.path.map(pt => L.latLng(pt[0], pt[1]));
                 const isRec = route.isRecommended;
 
@@ -682,9 +703,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <span style="font-size:0.72rem; font-weight:700; color:#a78bff; text-transform:uppercase; letter-spacing:0.08em;">Explainable AI Reasoning</span>
                         </div>
-                        <p style="font-size:0.85rem; line-height:1.55; color:var(--text-primary); font-style:italic; margin:0; padding:10px 12px; background:rgba(122,74,255,0.07); border-radius:8px; border-left:3px solid rgba(122,74,255,0.5);">
+                        <p style="font-size:0.85rem; line-height:1.55; color:var(--text-primary); font-style:italic; margin:0; padding:10px 12px; background:rgba(122,74,255,0.07); border-radius:8px; border-left:3px solid rgba(122,74,255,0.5); margin-bottom: 12px;">
                             "${escapeHtml(route.explanation)}"
                         </p>
+                        <button type="button" class="btn btn-primary start-journey-btn" data-route-id="${route.id}" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="ri-navigation-line"></i> Start Journey
+                        </button>
                     </div>
                 </div>
                 `;
@@ -704,6 +728,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             densityMap.fitBounds(pLine.getBounds(), { padding: [50, 50] });
                         }
                     });
+
+                    const startBtn = card.querySelector('.start-journey-btn');
+                    if (startBtn) {
+                        startBtn.addEventListener('click', (e) => {
+                            e.stopPropagation(); // prevent card click
+                            startJourneySession(route);
+                        });
+                    }
                 }
             });
 
@@ -1010,6 +1042,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // === Module: Smart Guardian ===
+    window.activeJourneySession = null;
+    let locationWatchId = null;
+
+    window.startJourneySession = function(route) {
+        window.activeJourneySession = {
+            routeId: route.id,
+            source: route.source,
+            destination: route.destination,
+            distance: route.distance_meters,
+            expectedTime: route.duration_seconds,
+            path: route.path,
+            startTime: Date.now(),
+            status: 'active',
+            gpsUpdates: []
+        };
+
+        const guardianNav = document.querySelector('.nav-item[data-view="guardian"]');
+        if (guardianNav) guardianNav.click();
+
+        addLog(`Started Journey monitoring (Route ID: ${route.id})`);
+        
+        if ("geolocation" in navigator) {
+            if (locationWatchId !== null) {
+                navigator.geolocation.clearWatch(locationWatchId);
+            }
+            
+            locationWatchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    if (window.activeJourneySession && window.activeJourneySession.status === 'active') {
+                        window.activeJourneySession.gpsUpdates.push({
+                            lat: position.coords.latitude,
+                            lon: position.coords.longitude,
+                            speed: position.coords.speed,
+                            timestamp: position.timestamp
+                        });
+                    }
+                },
+                (error) => {
+                    console.error("Background monitoring error:", error);
+                },
+                { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+            );
+        }
+    };
     const simulateBtn = document.getElementById('simulate-deviation-btn');
     const aiLog = document.getElementById('ai-log');
     const safetyModal = document.getElementById('safety-check-modal');

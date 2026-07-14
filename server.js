@@ -7,7 +7,8 @@ dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static('public'));
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -33,44 +34,22 @@ async function runGemini(prompt) {
     }
 }
 
-const fs = require('fs/promises');
-const path = require('path');
+const connectDB = require('./database/connection');
+const CommunityReport = require('./models/CommunityReport');
+const EvidenceVault = require('./models/EvidenceVault');
 
-// In-memory data store for community reports
-let communityReports = [];
-const REPORTS_FILE = path.join(__dirname, 'reports.json');
-
-// Load existing reports on startup
-async function loadReports() {
-    try {
-        const data = await fs.readFile(REPORTS_FILE, 'utf-8');
-        communityReports = JSON.parse(data);
-        console.log(`Loaded ${communityReports.length} reports from ${REPORTS_FILE}`);
-    } catch (err) {
-        if (err.code !== 'ENOENT') {
-            console.error('Failed to load reports:', err);
-        } else {
-            console.log('No existing reports file found. Starting fresh.');
-        }
-    }
-}
-loadReports();
-
-// Helper to save reports
-// NOTE: Read-modify-write on a flat file isn't atomic. Two near-simultaneous
-// submissions could race and one write could clobber the other. Fine for this
-// demo scale, but worth noting for production.
-async function saveReports() {
-    try {
-        await fs.writeFile(REPORTS_FILE, JSON.stringify(communityReports, null, 2));
-    } catch (err) {
-        console.error('Failed to save reports:', err);
-    }
-}
+// Connect to MongoDB
+connectDB();
 
 // Endpoint to fetch reports
-app.get('/api/reports', (req, res) => {
-    res.json(communityReports);
+app.get('/api/reports', async (req, res) => {
+    try {
+        const reports = await CommunityReport.find().sort({ createdAt: -1 });
+        res.json(reports);
+    } catch (err) {
+        console.error("Error fetching reports:", err);
+        res.status(500).json({ error: "Failed to fetch reports" });
+    }
 });
 
 // Endpoint to add a report (with Gemini moderation)
@@ -96,29 +75,54 @@ app.post('/api/reports', async (req, res) => {
         console.error("Moderation AI failed, proceeding without it.");
     }
 
-    const newReport = {
-        ...reportData,
-        id: Date.now().toString(),
-        verifications: 0
-    };
-    communityReports.unshift(newReport);
-
-    // Save to disk (fire and forget for this scale)
-    saveReports();
-
-    res.status(201).json(newReport);
+    try {
+        const newReport = new CommunityReport(reportData);
+        await newReport.save();
+        res.status(201).json(newReport);
+    } catch (err) {
+        console.error("Error saving report:", err);
+        res.status(500).json({ error: "Failed to save report" });
+    }
 });
 
 // Endpoint to verify a report
-app.post('/api/reports/:id/verify', (req, res) => {
-    const reportId = req.params.id;
-    const report = communityReports.find(r => r.id === reportId);
-    if (report) {
-        report.verifications += 1;
-        saveReports(); // Persist verification count
-        res.json(report);
-    } else {
-        res.status(404).json({ error: "Report not found" });
+app.post('/api/reports/:id/verify', async (req, res) => {
+    try {
+        const reportId = req.params.id;
+        const report = await CommunityReport.findOne({ id: reportId });
+        if (report) {
+            report.verifications += 1;
+            await report.save();
+            res.json(report);
+        } else {
+            res.status(404).json({ error: "Report not found" });
+        }
+    } catch (err) {
+        console.error("Error verifying report:", err);
+        res.status(500).json({ error: "Failed to verify report" });
+    }
+});
+
+// Endpoint to fetch vault entries
+app.get('/api/vault', async (req, res) => {
+    try {
+        const vaultEntries = await EvidenceVault.find().sort({ timestamp: 1 });
+        res.json(vaultEntries);
+    } catch (err) {
+        console.error("Error fetching vault entries:", err);
+        res.status(500).json({ error: "Failed to fetch vault entries" });
+    }
+});
+
+// Endpoint to add to vault
+app.post('/api/vault', async (req, res) => {
+    try {
+        const newEntry = new EvidenceVault(req.body);
+        await newEntry.save();
+        res.status(201).json(newEntry);
+    } catch (err) {
+        console.error("Error saving vault entry:", err);
+        res.status(500).json({ error: "Failed to save vault entry" });
     }
 });
 
@@ -460,6 +464,12 @@ function fallbackExplanation(routeData, allRoutes) {
 }
 
 async function analyzeRoutesWithReports(routes, radius = 500) {
+    let communityReports = [];
+    try {
+        communityReports = await CommunityReport.find();
+    } catch (err) {
+        console.error("Error fetching reports for route analysis:", err);
+    }
     const analyzedRoutes = [];
     const currentHour = new Date().getHours();
 

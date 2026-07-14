@@ -1259,8 +1259,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === Module: Evidence Vault ===
     const vaultTimeline = document.getElementById('vault-timeline');
-    let vaultEntries = JSON.parse(localStorage.getItem('safeher-vault') || '[]');
+    let vaultEntries = [];
 
+    async function fetchVault() {
+        try {
+            const res = await fetch('/api/vault');
+            vaultEntries = await res.json();
+            renderVault();
+        } catch (e) {
+            console.error('Error fetching vault:', e);
+            vaultEntries = [];
+            renderVault();
+        }
+    }
     function renderVault() {
         if (!vaultTimeline) return;
         vaultTimeline.innerHTML = '';
@@ -1289,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', () => {
             el.innerHTML = `
                 <div class="feed-header">
                     <strong><i class="ri-record-circle-line" style="color:var(--danger)"></i> Incident Logged</strong>
-                    <span class="time text-muted">${escapeHtml(entry.time)}</span>
+                    <span class="time text-muted">${escapeHtml(entry.time || new Date(entry.timestamp).toLocaleTimeString())}</span>
                 </div>
                 <p class="text-muted mt-2" style="font-size: 0.9rem;">${escapeHtml(entry.reason)}</p>
                 <div style="display:flex; gap: 8px; margin-top: 12px">
@@ -1301,17 +1312,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    renderVault();
+    fetchVault();
 
-    function addToVault(reason, audioUrl = null) {
+    async function addToVault(reason, audioUrl = null) {
         const newEntry = {
             time: new Date().toLocaleTimeString(),
             reason: reason,
             audioUrl: audioUrl
         };
-        vaultEntries.push(newEntry);
-        localStorage.setItem('safeher-vault', JSON.stringify(vaultEntries));
-        renderVault();
+        try {
+            await fetch('/api/vault', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newEntry)
+            });
+            fetchVault();
+        } catch (err) {
+            console.error("Error saving to vault:", err);
+            // Fallback for demo purposes
+            vaultEntries.push(newEntry);
+            renderVault();
+        }
     }
 
     if (vaultTimeline) {
